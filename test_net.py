@@ -15,7 +15,9 @@ import argparse
 import pprint
 import pdb
 import time
+
 import cv2
+
 import torch
 from torch.autograd import Variable
 import torch.nn as nn
@@ -28,10 +30,9 @@ from model.rpn.bbox_transform import clip_boxes
 from model.nms.nms_wrapper import nms
 from model.rpn.bbox_transform import bbox_transform_inv
 from model.utils.net_utils import save_net, load_net, vis_detections
+
 from model.faster_rcnn.vgg16 import vgg16
 from model.faster_rcnn.resnet import resnet
-
-import pdb
 
 try:
     xrange          # Python 2
@@ -57,7 +58,7 @@ def parse_args():
                       help='set config keys', default=None,
                       nargs=argparse.REMAINDER)
   parser.add_argument('--load_dir', dest='load_dir',
-                      help='directory to load models', default="/srv/share/jyang375/models",
+                      help='directory to load models', default="models",
                       type=str)
   parser.add_argument('--cuda', dest='cuda',
                       help='whether use CUDA',
@@ -83,9 +84,6 @@ def parse_args():
   parser.add_argument('--checkpoint', dest='checkpoint',
                       help='checkpoint to load network',
                       default=10021, type=int)
-  parser.add_argument('--bs', dest='batch_size',
-                      help='batch_size',
-                      default=1, type=int)
   parser.add_argument('--vis', dest='vis',
                       help='visualization mode',
                       action='store_true')
@@ -187,10 +185,10 @@ if __name__ == '__main__':
     gt_boxes = gt_boxes.cuda()
 
   # make variable
-  im_data = Variable(im_data, volatile=True)
-  im_info = Variable(im_info, volatile=True)
-  num_boxes = Variable(num_boxes, volatile=True)
-  gt_boxes = Variable(gt_boxes, volatile=True)
+  im_data = Variable(im_data)
+  im_info = Variable(im_info)
+  num_boxes = Variable(num_boxes)
+  gt_boxes = Variable(gt_boxes)
 
   if args.cuda:
     cfg.CUDA = True
@@ -214,9 +212,9 @@ if __name__ == '__main__':
                for _ in xrange(imdb.num_classes)]
 
   output_dir = get_output_dir(imdb, save_name)
-  dataset = roibatchLoader(roidb, ratio_list, ratio_index, args.batch_size, \
+  dataset = roibatchLoader(roidb, ratio_list, ratio_index, 1, \
                         imdb.num_classes, training=False, normalize = False)
-  dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size,
+  dataloader = torch.utils.data.DataLoader(dataset, batch_size=1,
                             shuffle=False, num_workers=0,
                             pin_memory=True)
 
@@ -262,9 +260,10 @@ if __name__ == '__main__':
           pred_boxes = clip_boxes(pred_boxes, im_info.data, 1)
       else:
           # Simply repeat the boxes, once for each class
-          pred_boxes = np.tile(boxes, (1, scores.shape[1]))
+          _ = torch.from_numpy(np.tile(boxes, (1, scores.shape[1])))
+          pred_boxes = _.cuda() if args.cuda > 0 else _
 
-      pred_boxes /= data[1][0][2]
+      pred_boxes /= data[1][0][2].item()
 
       scores = scores.squeeze()
       pred_boxes = pred_boxes.squeeze()
