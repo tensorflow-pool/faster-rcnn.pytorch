@@ -87,7 +87,7 @@ __C.TRAIN.BG_THRESH_HI = 0.5
 __C.TRAIN.BG_THRESH_LO = 0.1
 
 # Use horizontally-flipped images during training?
-__C.TRAIN.USE_FLIPPED = True
+__C.TRAIN.USE_FLIPPED = False
 
 # Train bounding-box regressors
 __C.TRAIN.BBOX_REG = True
@@ -266,7 +266,8 @@ __C.EPS = 1e-14
 __C.ROOT_DIR = osp.abspath(osp.join(osp.dirname(__file__), '..', '..', '..'))
 
 # Data directory
-__C.DATA_DIR = osp.abspath(osp.join(__C.ROOT_DIR, 'data'))
+# __C.DATA_DIR = osp.abspath(osp.join('~/datasets/VOCdevkit'))
+__C.DATA_DIR = osp.expanduser('~/datasets/VOCdevkit')
 
 # Name (or path to) the matlab executable
 __C.MATLAB = 'matlab'

@@ -1,6 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 #pragma once
 #include "cpu/vision.h"
+# include <stdio.h>
 
 #ifdef WITH_CUDA
 #include "cuda/vision.h"
@@ -22,7 +23,6 @@ at::Tensor nms(const at::Tensor& dets,
     AT_ERROR("Not compiled with GPU support");
 #endif
   }
-
   at::Tensor result = nms_cpu(dets, scores, threshold);
   return result;
 }
